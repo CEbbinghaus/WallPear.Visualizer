@@ -1,0 +1,318 @@
+{
+	"description" : "A simple Audio Visualizer i made",
+	"file" : "index.html",
+	"general" : 
+	{
+		"properties" : 
+		{
+			"customdirectory" : 
+			{
+				"mode" : "fetchall", 
+				"text" : "Image Directory",
+				"type" : "file"
+			},
+			"BGColorType" : 
+			{
+				"condition" : "CustomCol.value",
+				"options" : 
+				[
+					{
+						"label" : "continuous",
+						"value" : 0
+					},
+					{
+						"label" : "rotating",
+						"value" : 1
+					},
+					{
+						"label" : "solid",
+						"value" : 2
+					}
+				],
+				"order" : 22,
+				"text" : "Backround Color",
+				"type" : "combo",
+				"value" : 2
+			},
+			"BSpeed" : 
+			{
+				"condition" : "CustomCol.value && BGColorType.value != 2",
+				"max" : 100,
+				"min" : 0,
+				"order" : 23,
+				"text" : "Backround Rainbow Speed",
+				"type" : "slider",
+				"value" : 10
+			},
+			"Bcol" : 
+			{
+				"condition" : "CustomCol.value && BGColorType.value == 2",
+				"order" : 23,
+				"text" : "Color",
+				"type" : "color",
+				"value" : "#212121"
+			},
+			"Col0" : 
+			{
+				"condition" : "CustomCol.value && (FGColorType.value < 2 || BGColorType.value < 2)",
+				"order" : 24,
+				"text" : "Rainbow Color 1",
+				"type" : "color",
+				"value" : "#3e23ff"
+			},
+			"Col1" : 
+			{
+				"condition" : "CustomCol.value && (FGColorType.value < 2 || BGColorType.value < 2)",
+				"order" : 25,
+				"text" : "Rainbow Color 2",
+				"type" : "color",
+				"value" : "#3cff3c"
+			},
+			"Col2" : 
+			{
+				"condition" : "CustomCol.value && (FGColorType.value < 2 || BGColorType.value < 2)",
+				"order" : 26,
+				"text" : "Rainbow Color 3",
+				"type" : "color",
+				"value" : "#ff2362"
+			},
+			"Col3" : 
+			{
+				"condition" : "CustomCol.value && (FGColorType.value < 2 || BGColorType.value < 2)",
+				"order" : 27,
+				"text" : "Rainbow Color 4",
+				"type" : "color",
+				"value" : "#2dafe6"
+			},
+			"Col4" : 
+			{
+				"condition" : "CustomCol.value && (FGColorType.value < 2 || BGColorType.value < 2)",
+				"order" : 28,
+				"text" : "Rainbow Color 5",
+				"type" : "color",
+				"value" : "#ff00ff"
+			},
+			"Col5" : 
+			{
+				"condition" : "CustomCol.value && (FGColorType.value < 2 || BGColorType.value < 2)",
+				"order" : 29,
+				"text" : "Rainbow Color 6",
+				"type" : "color",
+				"value" : "#ff8000"
+			},
+			"CustomCol" : 
+			{
+				"order" : 18,
+				"text" : "use Custom Colors",
+				"type" : "bool",
+				"value" : false
+			},
+			"DrawSide" : 
+			{
+				"options" : 
+				[
+					{
+						"label" : "Mirrored",
+						"value" : 0
+					},
+					{
+						"label" : "Top",
+						"value" : 1
+					},
+					{
+						"label" : "Bottom",
+						"value" : 2
+					}
+				],
+				"order" : 13,
+				"text" : "Side",
+				"type" : "combo",
+				"value" : 1
+			},
+			"FGColorType" : 
+			{
+				"condition" : "CustomCol.value",
+				"options" : 
+				[
+					{
+						"label" : "continuous",
+						"value" : 0
+					},
+					{
+						"label" : "rotating",
+						"value" : 1
+					},
+					{
+						"label" : "solid",
+						"value" : 2
+					}
+				],
+				"order" : 20,
+				"text" : "Foreground Color",
+				"type" : "combo",
+				"value" : 2
+			},
+			"Fade" : 
+			{
+				"order" : 14,
+				"text" : "Fade",
+				"type" : "bool",
+				"value" : false
+			},
+			"FadeAmount" : 
+			{
+				"condition" : "Fade.value",
+				"max" : 70,
+				"min" : 1,
+				"order" : 15,
+				"text" : "FadeAmount",
+				"type" : "slider",
+				"value" : 10
+			},
+			"Fcol" : 
+			{
+				"condition" : "CustomCol.value && FGColorType.value == 2",
+				"order" : 21,
+				"text" : "Color",
+				"type" : "color",
+				"value" : "#ffffff"
+			},
+			"Line" : 
+			{
+				"condition" : "draw.value == 0",
+				"max" : 25,
+				"min" : 1,
+				"order" : 12,
+				"text" : "Line Width",
+				"type" : "slider",
+				"value" : 3
+			},
+			"Radius" : 
+			{
+				"condition" : "Visualizer.value == 2 || Visualizer.value == 3 || Visualizer.value == 6",
+				"max" : 100,
+				"min" : 20,
+				"order" : 10,
+				"text" : "Radius",
+				"type" : "slider",
+				"value" : 50
+			},
+			"Speed" : 
+			{
+				"condition" : "CustomCol.value && FGColorType.value != 2",
+				"max" : 100,
+				"min" : 0,
+				"order" : 21,
+				"text" : "Forground Rainbow Speed",
+				"type" : "slider",
+				"value" : 10
+			},
+			"Visualizer" : 
+			{
+				"options" : 
+				[
+					{
+						"label" : "Curve",
+						"value" : 0
+					},
+					{
+						"label" : "Line",
+						"value" : 1
+					},
+					{
+						"label" : "Box",
+						"value" : 2
+					},
+					{
+						"label" : "Circle",
+						"value" : 3
+					},
+					{
+						"label" : "CircleAlt",
+						"value" : 4
+					},
+					{
+						"label" : "BoxAlt",
+						"value" : 5
+					},
+					{
+						"label" : "Bar",
+						"value" : 6
+					}
+				],
+				"order" : 9,
+				"text" : "Visualizer",
+				"type" : "combo",
+				"value" : 0
+			},
+			"draw" : 
+			{
+				"options" : 
+				[
+					{
+						"label" : "Line",
+						"value" : 0
+					},
+					{
+						"label" : "Fill",
+						"value" : 1
+					}
+				],
+				"order" : 11,
+				"text" : "Draw Method",
+				"type" : "combo",
+				"value" : 0
+			},
+			"multiplier" : 
+			{
+				"editable" : true,
+				"max" : 100,
+				"min" : 0,
+				"order" : 16,
+				"text" : "Height Multiplier",
+				"type" : "slider",
+				"value" : 20
+			},
+			"schemecolor" : 
+			{
+				"order" : 0,
+				"text" : "ui_browse_properties_scheme_color",
+				"type" : "color",
+				"value" : "0 0 0"
+			},
+			"test" : 
+			{
+				"condition" : "test.value = test1.value",
+				"order" : 0,
+				"text" : "Refresh (This is a button)",
+				"type" : "bool",
+				"value" : false
+			},
+			"test1" : 
+			{
+				"condition" : "false",
+				"order" : 0,
+				"text" : "always false",
+				"type" : "bool",
+				"value" : true
+			},
+			"ypos" : 
+			{
+				"editable" : true,
+				"max" : 1000,
+				"min" : 0,
+				"order" : 17,
+				"text" : "Y Position",
+				"type" : "slider",
+				"value" : 500
+			}
+		},
+		"supportsaudioprocessing" : true
+	},
+	"monetization" : false,
+	"preview" : "preview.gif",
+	"tags" : [ "Abstract" ],
+	"title" : "Audio Visualizer by CEbbinghaus",
+	"type" : "web",
+	"visibility" : "public"
+}
