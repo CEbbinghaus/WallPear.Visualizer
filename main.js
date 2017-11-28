@@ -324,11 +324,14 @@ function wallpaperAudioListener(audioArray) {
         break;
         case DisplayType.Bars:
             Audio.forEach((p, i) => {
-                if(CurrentSide == DrawSide.Top || CurrentSide == DrawSide.Mirror){
+                if(CurrentSide == DrawSide.Top){
                     drawBar(p.x, YPosition, -(Average[i] * MaxHeight), BlockRad * 2)
                 }
-                if(CurrentSide == DrawSide.Bottom || CurrentSide == DrawSide.Mirror){
+                if(CurrentSide == DrawSide.Bottom){
                     drawBar(p.x, YPosition, Average[i] * MaxHeight, BlockRad * 2)
+                }
+                if(CurrentSide == DrawSide.Mirror){
+                    drawBar(p.x, p.iy, Average[i] * MaxHeight * 2, BlockRad * 2)
                 }
             })
         break;
