@@ -1,16 +1,10 @@
 {
-	"description" : "A simple Audio Visualizer i made",
+	"description" : "this is a Simplistic Audio Visualizer that i made for my first \"Real\" project. it is super customizable and allows for a great amount of unique combinations. for any bugs or suggestions email wallpear.cebbinghaus@gmail.com",
 	"file" : "index.html",
 	"general" : 
 	{
 		"properties" : 
 		{
-			"customdirectory" : 
-			{
-				"mode" : "fetchall", 
-				"text" : "Image Directory",
-				"type" : "file"
-			},
 			"BGColorType" : 
 			{
 				"condition" : "CustomCol.value",
@@ -151,6 +145,13 @@
 				"text" : "Foreground Color",
 				"type" : "combo",
 				"value" : 2
+			},
+			"Ajust" : 
+			{
+				"order" : 13,
+				"text" : "Auto Level",
+				"type" : "bool",
+				"value" : false
 			},
 			"Fade" : 
 			{
@@ -312,7 +313,8 @@
 	"monetization" : false,
 	"preview" : "preview.gif",
 	"tags" : [ "Abstract" ],
-	"title" : "Audio Visualizer by CEbbinghaus",
+	"title" : "WallPear.Visualizer",
 	"type" : "web",
-	"visibility" : "public"
+	"visibility" : "public",
+	"workshopid" : 1205046549
 }

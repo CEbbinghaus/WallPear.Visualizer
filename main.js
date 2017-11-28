@@ -74,6 +74,8 @@ var multiplier = 0.2;
 
 var CustomCol = false;
 
+var Ajust = false;
+
 var Width;
 var Height;
 
@@ -182,12 +184,33 @@ window.wallpaperPropertyListener = {
         if(properties.test){
             ctx.clearRect(0, 0, Width, Height)
         }
-        if(properties.customdirectory){
-            console.log(properties.customdirectory.value)
+        if(properties.Ajust){
+            Ajust = properties.Ajust.value
         }
     }
 };
 
+// img.onload = function(){
+//     let ratio = 0;
+//     let width = img.width;
+//     let height = img.height;
+
+//     if(width > current){
+//         ratio = current / width;
+//         images[img.id].width = current;
+//         images[img.id].height = height * ratio;
+//         height = height * ratio;
+//         width = width * ratio;
+//     }
+
+//     if(height > current){
+//         ratio = current / height;
+//         images[img.id].height = current;
+//         images[img.id].width = width * ratio;
+//         width = width * ratio;
+//         height = height * ratio;
+//     }
+// }
 function wallpaperAudioListener(audioArray) {
     ColorOffset += 0.001
     let MaxHeight = multiplier * (Height / 2) / 2
@@ -221,9 +244,29 @@ function wallpaperAudioListener(audioArray) {
     let Average = new Array(64);
     for(let i = 0; i < audioArray.length / 2 ;i++){
         Average[i] = Math.max(Right[i], Left[i])
-        Audio[i].y = Average[i] * MaxHeight + YPosition;
-        Audio[i].iy = -(Average[i]*MaxHeight) + YPosition;
     }
+
+    console.log(Ajust)
+    if(Ajust){
+        let max = 0;
+        Average.forEach(e => {
+            if(e > max){
+                max = e
+            }
+        })
+        console.log(max)
+        let multi = multiplier / max;
+        console.log(max * multi)
+        Average.forEach((e, i) => {
+            //console.log(e * multi)
+            Average[i] = e * multi
+        })
+    }
+
+    Average.forEach((e, i) => {
+        Audio[i].y = e * MaxHeight + YPosition;
+        Audio[i].iy = -(e*MaxHeight) + YPosition;
+    })
 
     var barWidth = Math.round(1.0 / 128.0 * Width) * 2;
     var halfCount = audioArray.length / 2;
