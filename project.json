@@ -21,6 +21,10 @@
 					{
 						"label" : "solid",
 						"value" : 2
+					},
+					{
+						"label" : "image",
+						"value" : 3
 					}
 				],
 				"order" : 22,
@@ -28,9 +32,39 @@
 				"type" : "combo",
 				"value" : 2
 			},
+			"img" : 
+			{
+				"condition" : "CustomCol.value && BGColorType.value == 3",
+				"order" : 23,
+				"text" : "Image",
+				"type" : "file"
+			},
+			"drawMode" : 
+			{
+				"condition" : "CustomCol.value && BGColorType.value == 3",
+				"options" : 
+				[
+					{
+						"label" : "Center",
+						"value" : 0
+					},
+					{
+						"label" : "Fit",
+						"value" : 1
+					},
+					{
+						"label" : "Stretch",
+						"value" : 2
+					}
+				],
+				"order" : 23,
+				"text" : "Draw Mode",
+				"type" : "combo",
+				"value" : 0
+			},
 			"BSpeed" : 
 			{
-				"condition" : "CustomCol.value && BGColorType.value != 2",
+				"condition" : "CustomCol.value && BGColorType.value < 2",
 				"max" : 100,
 				"min" : 0,
 				"order" : 23,
@@ -149,7 +183,7 @@
 			"Ajust" : 
 			{
 				"order" : 13,
-				"text" : "Auto Level",
+				"text" : "Auto Level (May cause )",
 				"type" : "bool",
 				"value" : false
 			},

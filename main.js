@@ -1,11 +1,11 @@
-var DrawSide = {
+const DrawSide = {
     Mirror : 0,
     Top : 1,
     Bottom : 2
 }
 var CurrentSide = DrawSide.Top;
 
-var DisplayType = {
+const DisplayType = {
     Curve : 0,
     Line : 1,
     Box : 2,
@@ -17,19 +17,27 @@ var DisplayType = {
 };
 var Display = DisplayType.Line;
 
-var DrawType = {
+const DrawType = {
     Line : 0,
     Fill : 1
 };
 var Draw = DrawType.Line;
 
+const DrawMode = {
+    center: 0,
+    fit: 1,
+    stretch: 2
+}
+var ImageMode = DrawMode.center;
+
 var FRainbow = false;
 var BRainbow = false;
 
-var ColorType = {
+const ColorType = {
     continuous: 0,
     rotating: 1,
-    solid: 2
+    solid: 2,
+    image: 3
 }
 var FColorType = ColorType.solid;
 var BColorType = ColorType.solid;
@@ -54,6 +62,13 @@ var Radius = 1;
 var FGC = "#FFFFFF";
 var BGC = "#212121"
 
+var image = {
+    isLoaded : false,
+    img : new Image(),
+    color: "#212121",
+    height : 0,
+    width : 0
+}
 
 
 var colors = new Array(
@@ -79,9 +94,11 @@ var Ajust = false;
 var Width;
 var Height;
 
+var lastTime = 0;
+var DeltaTime = 0;
 
-c = d("c");
-ctx = c.getContext("2d");
+const c = d("c");
+const ctx = c.getContext("2d");
 
 var Audio = [];
 
@@ -187,30 +204,58 @@ window.wallpaperPropertyListener = {
         if(properties.Ajust){
             Ajust = properties.Ajust.value
         }
+        if(properties.drawMode){
+            ctx.clearRect(0, 0, Width, Height)
+            ImageMode = properties.drawMode.value
+        }
+        if(properties.img){
+            ctx.clearRect(0, 0, Width, Height)
+            console.log('url(file:///img)'.replace('img',properties.img.value))
+            let url = properties.img.value;
+            url = url.replace(/%3A/g, ":")
+            url = url.replace(/%20/g, " ")
+            console.log(url)
+            image.isLoaded = false;
+            image.img.onload = () => {
+                let rat = image.img.width / image.img.height;
+                image.isLoaded = true;
+                let current;
+                current = Height;
+                let ratio = 0;
+                let width = image.img.width;
+                let height = image.img.height;
+
+                if(width > current){
+                    ratio = current / width;
+                    image.width = current;
+                    image.height = height * ratio;
+                    height = height * ratio;
+                    width = width * ratio;
+                }
+
+                if(height > current){
+                    ratio = current / height;
+                    image.height = current;
+                    image.width = width * ratio;
+                    width = width * ratio;
+                    height = height * ratio;
+                }
+                if(image.height == 0 || image.width == 0){
+                    image.height = Height;
+                    image.width = Height * rat;
+                }
+                console.log("initializing Image")
+                ctx.drawImage(image.img, 0, 0, Width, Height)
+                let d = ctx.getImageData(0, 0, Width, Height)
+                image.color = rgbtoHex(`rgb(${d.data[0]},${d.data[0]},${d.data[0]})`);
+                console.log(image.width, image.height)
+            }
+            image.img.src = url;
+        }
     }
 };
 
-// img.onload = function(){
-//     let ratio = 0;
-//     let width = img.width;
-//     let height = img.height;
 
-//     if(width > current){
-//         ratio = current / width;
-//         images[img.id].width = current;
-//         images[img.id].height = height * ratio;
-//         height = height * ratio;
-//         width = width * ratio;
-//     }
-
-//     if(height > current){
-//         ratio = current / height;
-//         images[img.id].height = current;
-//         images[img.id].width = width * ratio;
-//         width = width * ratio;
-//         height = height * ratio;
-//     }
-// }
 function wallpaperAudioListener(audioArray) {
     ColorOffset += 0.001
     let MaxHeight = multiplier * (Height / 2) / 2
@@ -225,12 +270,28 @@ function wallpaperAudioListener(audioArray) {
     });
     if(!Fade){
         ctx.clearRect(0, 0, Width, Height);
-        BGColor()
-        ctx.fillRect(0, 0, Width, Height)
+        if(BColorType != ColorType.image){
+            BGColor()
+            ctx.fillRect(0, 0, Width, Height)
+        }else{
+            if(image.isLoaded){
+                ctx.fillStyle = image.color
+                ctx.fillRect(0, 0, Width, Height)
+                drawImage()
+            }
+        }
     }else{
-        BGColor()
         ctx.globalAlpha = FadeTime;
-        ctx.fillRect(0, 0, Width, Height);
+        if(BColorType != ColorType.image){
+            BGColor()
+            ctx.fillRect(0, 0, Width, Height)
+        }else{
+            if(image.isLoaded){
+                ctx.fillStyle = image.color
+                ctx.fillRect(0, 0, Width, Height)
+                drawImage()
+            }
+        }
         ctx.globalAlpha = 1;
     }
 
@@ -246,7 +307,6 @@ function wallpaperAudioListener(audioArray) {
         Average[i] = Math.max(Right[i], Left[i])
     }
 
-    console.log(Ajust)
     if(Ajust){
         let max = 0;
         Average.forEach(e => {
@@ -254,11 +314,8 @@ function wallpaperAudioListener(audioArray) {
                 max = e
             }
         })
-        console.log(max)
         let multi = multiplier / max;
-        console.log(max * multi)
         Average.forEach((e, i) => {
-            //console.log(e * multi)
             Average[i] = e * multi
         })
     }
@@ -336,6 +393,24 @@ function wallpaperAudioListener(audioArray) {
             })
         break;
     }
+    let ct = Date.now();
+    DeltaTime = ct - lastTime;
+    lastTime = ct;
+    //console.log(`Done and it only took me ${DeltaTime} ms`)
+}
+
+function drawImage(){
+    switch(ImageMode){
+        case DrawMode.center:
+            ctx.drawImage(image.img, Width / 2 - image.img.width / 2, Height / 2 - image.img.height / 2, image.img.width, image.img.height)
+        break;
+        case DrawMode.fit:
+            ctx.drawImage(image.img, (Width / 2) - (image.width / 2), (Height / 2) - (image.height / 2), image.width, image.height)
+        break;
+        case DrawMode.stretch:
+        ctx.drawImage(image.img, 0, 0, Width, Height)
+        break;
+    }
 }
 
 function drawBar(x, y, h, w){
@@ -364,19 +439,34 @@ function drawCircle(x, y, r){
     }
 }
 
+function rgbtoHex(s){
+    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(s)){
+        return s
+    }
+    let r = s.replace(/(rgb\()|(\))/g, "")
+    r = r.split(",")
+    r.forEach((c, i) => {
+         r[i] = parseInt(c).toString(16)
+         if(r[i].length < 2){
+             r[i] = "0" + r[i];
+         }
+    })
+    return "#" + r.join("")
+}
+
 function getHEX(v){
     if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(v)){
         return v
     }
-    c = v.split(" ")
-    for(let i = 0; i < c.length; i++){
-        c[i] = parseFloat(c[i]) * 255
-        c[i] = c[i].toString(16);
-        if(c[i].length < 2){
-            c[i] = "0" + c[i]
+    let j = v.split(" ")
+    for(let i = 0; i < j.length; i++){
+        j[i] = parseFloat(j[i]) * 255
+        j[i] = j[i].toString(16);
+        if(j[i].length < 2){
+            j[i] = "0" + j[i]
         }
     }
-    return c = "#" + c.join("")
+    return j = "#" + j.join("")
 }
 
 function test(k){
@@ -401,11 +491,11 @@ function getRGBArr(v){
         let retar = [rn, gn, bn]
         return retar
     }else{
-        c = v.split(" ")
-        for(let i = 0; i < c.length; i++){
-            c[i] = parseFloat(c[i]) * 255
+        j = v.split(" ")
+        for(let i = 0; i < j.length; i++){
+            j[i] = parseFloat(j[i]) * 255
         }
-        return c
+        return j
     }
 }
 
@@ -470,6 +560,10 @@ function drawLine(smooth, inverted){
 
 function d(l){
     return document.getElementById(l);
+}
+
+function loadImage(l){
+
 }
 
 function FGColor(){
