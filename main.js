@@ -67,9 +67,15 @@ var image = {
     img : new Image(),
     color: "#212121",
     height : 0,
-    width : 0
+    width : 0,
+    pickCol : false
 }
 
+var Mouse = {
+    isDown : false,
+    x : 0,
+    y : 0
+}
 
 var colors = new Array(
     [62,35,255],
@@ -119,6 +125,12 @@ window.onload = function() {
     if(c.height != window.innerHeight)c.height = window.innerHeight;
 };
 
+window.addEventListener("mousemove", e => {
+    Mouse.x = event.clientX;
+    Mouse.y = event.clientY;
+});
+window.addEventListener("mousedown",()=>Mouse.isDown = true);
+window.addEventListener("mouseup",()=>Mouse.isDown = false);
 
 window.wallpaperPropertyListener = {
     applyUserProperties: function(properties) {
@@ -208,6 +220,9 @@ window.wallpaperPropertyListener = {
             ctx.clearRect(0, 0, Width, Height)
             ImageMode = properties.drawMode.value
         }
+        if(properties.pickCol){
+            image.pickCol = true;
+        }
         if(properties.img){
             ctx.clearRect(0, 0, Width, Height)
             console.log('url(file:///img)'.replace('img',properties.img.value))
@@ -219,36 +234,11 @@ window.wallpaperPropertyListener = {
             image.img.onload = () => {
                 let rat = image.img.width / image.img.height;
                 image.isLoaded = true;
-                let current;
-                current = Height;
-                let ratio = 0;
-                let width = image.img.width;
-                let height = image.img.height;
-
-                if(width > current){
-                    ratio = current / width;
-                    image.width = current;
-                    image.height = height * ratio;
-                    height = height * ratio;
-                    width = width * ratio;
-                }
-
-                if(height > current){
-                    ratio = current / height;
-                    image.height = current;
-                    image.width = width * ratio;
-                    width = width * ratio;
-                    height = height * ratio;
-                }
-                if(image.height == 0 || image.width == 0){
-                    image.height = Height;
-                    image.width = Height * rat;
-                }
-                console.log("initializing Image")
-                ctx.drawImage(image.img, 0, 0, Width, Height)
-                let d = ctx.getImageData(0, 0, Width, Height)
-                image.color = rgbtoHex(`rgb(${d.data[0]},${d.data[0]},${d.data[0]})`);
-                console.log(image.width, image.height)
+                let hRatio = Width / image.img.width;
+                let vRatio = Height / image.img.height;
+                let ratio  = Math.min ( hRatio, vRatio );
+                image.width = image.img.width * ratio;
+                image.height = image.img.height * ratio;
             }
             image.img.src = url;
         }
@@ -293,6 +283,16 @@ function wallpaperAudioListener(audioArray) {
             }
         }
         ctx.globalAlpha = 1;
+    }
+
+    if(image.pickCol){
+        if(Mouse.isDown){
+
+            let d = ctx.getImageData(Mouse.x, Mouse.y, 1, 1)
+            image.color = rgbtoHex(`rgb(${d.data[0]},${d.data[0]},${d.data[0]})`);
+            console.log(image.color)
+            image.pickCol = false;
+        }
     }
 
     if(totalAmount == audioArray.length || totalAmount <= 0.3){

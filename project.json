@@ -62,6 +62,13 @@
 				"type" : "combo",
 				"value" : 0
 			},
+			"pickCol":{
+				"condition" : "CustomCol.value && BGColorType.value == 3; pickCol.value = test1.value",
+				"order" : 23.5,
+				"text" : "Pick Backround Color",
+				"type" : "bool",
+				"value" : false
+			},
 			"BSpeed" : 
 			{
 				"condition" : "CustomCol.value && BGColorType.value < 2",
