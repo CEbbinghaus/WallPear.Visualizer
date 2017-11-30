@@ -62,12 +62,13 @@
 				"type" : "combo",
 				"value" : 0
 			},
-			"pickCol":{
-				"condition" : "CustomCol.value && BGColorType.value == 3; pickCol.value = test1.value",
-				"order" : 23.5,
-				"text" : "Pick Backround Color",
-				"type" : "bool",
-				"value" : false
+			"pcol" : 
+			{
+				"condition" : "CustomCol.value && BGColorType.value == 3",
+				"order" : 23.7,
+				"text" : "Backround Color (use the Eye Dropper tool for the best effect)",
+				"type" : "color",
+				"value" : "#212121"
 			},
 			"BSpeed" : 
 			{
@@ -190,7 +191,7 @@
 			"Ajust" : 
 			{
 				"order" : 13,
-				"text" : "Auto Level (May cause )",
+				"text" : "Auto Level (May cause Issues)",
 				"type" : "bool",
 				"value" : false
 			},

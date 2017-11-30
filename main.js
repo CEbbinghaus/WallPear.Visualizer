@@ -68,7 +68,7 @@ var image = {
     color: "#212121",
     height : 0,
     width : 0,
-    pickCol : false
+    bgc : false
 }
 
 var Mouse = {
@@ -129,8 +129,6 @@ window.addEventListener("mousemove", e => {
     Mouse.x = event.clientX;
     Mouse.y = event.clientY;
 });
-window.addEventListener("mousedown",()=>Mouse.isDown = true);
-window.addEventListener("mouseup",()=>Mouse.isDown = false);
 
 window.wallpaperPropertyListener = {
     applyUserProperties: function(properties) {
@@ -169,7 +167,6 @@ window.wallpaperPropertyListener = {
             FGC = getHEX(properties.Fcol.value)
         }
         if(properties.Bcol){
-            document.bgColor = getHEX(properties.Bcol.value)
             ctx.clearRect(0, 0, Width, Height)
             BGC = getHEX(properties.Bcol.value)
         }
@@ -220,26 +217,23 @@ window.wallpaperPropertyListener = {
             ctx.clearRect(0, 0, Width, Height)
             ImageMode = properties.drawMode.value
         }
-        if(properties.pickCol){
-            image.pickCol = true;
+        if(properties.pcol){
+            image.color = getHEX(properties.pcol.value)
         }
         if(properties.img){
-            ctx.clearRect(0, 0, Width, Height)
-            console.log('url(file:///img)'.replace('img',properties.img.value))
+            ctx.clearRect(0, 0, Width, Height);
             let url = properties.img.value;
-            url = url.replace(/%3A/g, ":")
-            url = url.replace(/%20/g, " ")
-            console.log(url)
+            url = url.replace(/%3A/g, ":");
+            url = url.replace(/%20/g, " ");
             image.isLoaded = false;
             image.img.onload = () => {
-                let rat = image.img.width / image.img.height;
-                image.isLoaded = true;
                 let hRatio = Width / image.img.width;
                 let vRatio = Height / image.img.height;
                 let ratio  = Math.min ( hRatio, vRatio );
                 image.width = image.img.width * ratio;
                 image.height = image.img.height * ratio;
-            }
+                image.isLoaded = true;
+            };
             image.img.src = url;
         }
     }
@@ -247,52 +241,46 @@ window.wallpaperPropertyListener = {
 
 
 function wallpaperAudioListener(audioArray) {
-    ColorOffset += 0.001
-    let MaxHeight = multiplier * (Height / 2) / 2
-    let BlockRad = (Width / 128) * Radius
+    ColorOffset += 0.001;
+    let MaxHeight = multiplier * (Height / 2) / 2;
+    let BlockRad = (Width / 128) * Radius;
 
     totalAmount = 0;
     audioArray.forEach(e => {
         if(e > 1){
             e = 1;
         }
-        totalAmount += e
+        totalAmount += e;
     });
     if(!Fade){
         ctx.clearRect(0, 0, Width, Height);
         if(BColorType != ColorType.image){
-            BGColor()
-            ctx.fillRect(0, 0, Width, Height)
+            BGColor();
+            ctx.fillRect(0, 0, Width, Height);
         }else{
             if(image.isLoaded){
-                ctx.fillStyle = image.color
-                ctx.fillRect(0, 0, Width, Height)
-                drawImage()
+                if(image.bgc){
+                    ctx.fillStyle = image.color;
+                    ctx.fillRect(0, 0, Width, Height);
+                }
+                drawImage();
             }
         }
     }else{
         ctx.globalAlpha = FadeTime;
         if(BColorType != ColorType.image){
-            BGColor()
-            ctx.fillRect(0, 0, Width, Height)
+            BGColor();
+            ctx.fillRect(0, 0, Width, Height);
         }else{
             if(image.isLoaded){
-                ctx.fillStyle = image.color
-                ctx.fillRect(0, 0, Width, Height)
-                drawImage()
+                if(image.bgc){
+                    ctx.fillStyle = image.color;
+                    ctx.fillRect(0, 0, Width, Height);
+                }
+                drawImage();
             }
         }
         ctx.globalAlpha = 1;
-    }
-
-    if(image.pickCol){
-        if(Mouse.isDown){
-
-            let d = ctx.getImageData(Mouse.x, Mouse.y, 1, 1)
-            image.color = rgbtoHex(`rgb(${d.data[0]},${d.data[0]},${d.data[0]})`);
-            console.log(image.color)
-            image.pickCol = false;
-        }
     }
 
     if(totalAmount == audioArray.length || totalAmount <= 0.3){
@@ -683,4 +671,9 @@ function BGColor(){
     }else{
         ctx.fillStyle="#212121";
     }
+}
+
+Array.prototype.subarray=function(start,end){
+    if(!end){ end=-1;} 
+   return this.slice(start, this.length+1-(end*-1));
 }
