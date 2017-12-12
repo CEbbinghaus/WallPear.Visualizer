@@ -59,6 +59,9 @@ var YPosition = Height / 2;
 
 var Radius = 1;
 
+var MaxHeight;
+var BlockRad;
+
 var FGC = "#FFFFFF";
 var BGC = "#212121"
 
@@ -107,6 +110,8 @@ const c = d("c");
 const ctx = c.getContext("2d");
 
 var Audio = [];
+var Average = [];
+var FadeArr = new Array(10);
 
 for(let i = 0; i < 64; i++){
     Audio.push({
@@ -242,8 +247,8 @@ window.wallpaperPropertyListener = {
 
 function wallpaperAudioListener(audioArray) {
     ColorOffset += 0.001;
-    let MaxHeight = multiplier * (Height / 2) / 2;
-    let BlockRad = (Width / 128) * Radius;
+    MaxHeight = multiplier * (Height / 2) / 2;
+    BlockRad = (Width / 128) * Radius;
 
     totalAmount = 0;
     audioArray.forEach(e => {
@@ -252,36 +257,6 @@ function wallpaperAudioListener(audioArray) {
         }
         totalAmount += e;
     });
-    if(!Fade){
-        ctx.clearRect(0, 0, Width, Height);
-        if(BColorType != ColorType.image){
-            BGColor();
-            ctx.fillRect(0, 0, Width, Height);
-        }else{
-            if(image.isLoaded){
-                if(image.bgc){
-                    ctx.fillStyle = image.color;
-                    ctx.fillRect(0, 0, Width, Height);
-                }
-                drawImage();
-            }
-        }
-    }else{
-        ctx.globalAlpha = FadeTime;
-        if(BColorType != ColorType.image){
-            BGColor();
-            ctx.fillRect(0, 0, Width, Height);
-        }else{
-            if(image.isLoaded){
-                if(image.bgc){
-                    ctx.fillStyle = image.color;
-                    ctx.fillRect(0, 0, Width, Height);
-                }
-                drawImage();
-            }
-        }
-        ctx.globalAlpha = 1;
-    }
 
     if(totalAmount == audioArray.length || totalAmount <= 0.3){
         return;
@@ -290,7 +265,7 @@ function wallpaperAudioListener(audioArray) {
     let Left = audioArray.slice(0, 63)
     let Right = audioArray.slice(63, 127)
 
-    let Average = new Array(64);
+    Average = new Array(64);
     for(let i = 0; i < audioArray.length / 2 ;i++){
         Average[i] = Math.max(Right[i], Left[i])
     }
@@ -316,25 +291,72 @@ function wallpaperAudioListener(audioArray) {
     var barWidth = Math.round(1.0 / 128.0 * Width) * 2;
     var halfCount = audioArray.length / 2;
 
+    ctx.clearRect(0, 0, Width, Height);
+    if(BColorType != ColorType.image){
+        BGColor();
+        ctx.fillRect(0, 0, Width, Height);
+    }else{
+        if(image.isLoaded){
+            if(image.bgc){
+                ctx.fillStyle = image.color;
+                ctx.fillRect(0, 0, Width, Height);
+            }
+            drawImage();
+        }
+    }
+
     ctx.lineWidth=LineWith;
-    FGColor()
+    FGColor(1);
 
+    let old = {
+        Pos: Audio.copy(),
+        Height : Average.copy()
+    }
 
+    if(Fade){
+        for(;FadeArr.length > FadeTime * 100;){
+            FadeArr.shift();
+        }
+        if(FadeArr.length < FadeTime * 100){
+            FadeArr.push(old)
+        } else {
+            FadeArr.shift();
+            FadeArr.push(old);
+        }
+        FadeArr.forEach((f, i) => {
+            //console.log(i / FadeArr.length)
+            //ctx.globalAlpha = (i / FadeArr.length)
+            FGColor(i / FadeArr.length);
+            DrawEverything(f);
+        })
+    }else{
+        DrawEverything(old);
+    }
+
+    let ct = Date.now();
+    DeltaTime = ct - lastTime;
+    lastTime = ct;
+    //console.log(`Done and it only took me ${DeltaTime} ms`)
+}
+
+function DrawEverything(obj){
+    let Audio = obj.Pos;
+    let Average = obj.Height;
     switch(Display){
         case DisplayType.Curve:
             if(CurrentSide == DrawSide.Top || CurrentSide == DrawSide.Mirror){
-                drawLine(true, true)
+                drawLine(Audio, true, true)
             }
             if(CurrentSide == DrawSide.Bottom || CurrentSide == DrawSide.Mirror){
-                drawLine(true, false)
+                drawLine(Audio, true, false)
             }
         break;
         case DisplayType.Line:
             if(CurrentSide == DrawSide.Top || CurrentSide == DrawSide.Mirror){
-                drawLine(false, true)
+                drawLine(Audio, false, true)
             }
             if(CurrentSide == DrawSide.Bottom || CurrentSide == DrawSide.Mirror){
-                drawLine()
+                drawLine(Audio)
             }
         break;
         case DisplayType.Box:
@@ -381,10 +403,6 @@ function wallpaperAudioListener(audioArray) {
             })
         break;
     }
-    let ct = Date.now();
-    DeltaTime = ct - lastTime;
-    lastTime = ct;
-    //console.log(`Done and it only took me ${DeltaTime} ms`)
 }
 
 function drawImage(){
@@ -427,6 +445,67 @@ function drawCircle(x, y, r){
     }
 }
 
+function drawLine(a, smooth, inverted){
+    if(!inverted){
+        inverted = false;
+    }
+    if(!smooth){
+        smooth = false;
+    }
+    if(!smooth){
+        if(inverted){
+            ctx.beginPath();
+            ctx.moveTo(0, YPosition);
+            ctx.lineTo(a[0].x, a[0].iy);
+            for (i = 1; i < a.length - 1; i ++)
+            {
+                ctx.lineTo(a[i].x, a[i].iy);
+            }
+            ctx.lineTo(Width, YPosition);
+        }else{
+            ctx.beginPath();
+            ctx.moveTo(0, YPosition);
+            ctx.lineTo(a[0].x, a[0].y);
+            for (i = 1; i < a.length - 1; i ++)
+            {
+                ctx.lineTo(a[i].x, a[i].y);
+            }
+            ctx.lineTo(Width, YPosition);
+        }
+    }else{
+        if(inverted){
+            ctx.beginPath();
+            ctx.moveTo(0, YPosition);
+            for (i = 1; i < a.length - 2; i ++)
+            {
+                var xc = (a[i].x + a[i + 1].x) / 2;
+                var yc = (a[i].iy + a[i + 1].iy) / 2;
+                ctx.quadraticCurveTo(a[i].x, a[i].iy, xc, yc);
+            }
+            ctx.quadraticCurveTo(a[i].x, a[i].iy, Width, YPosition);
+            ctx.lineTo(Width, YPosition);
+        }else{
+            ctx.beginPath();
+            ctx.moveTo(0, YPosition);
+            for (i = 1; i < a.length - 2; i ++)
+            {
+                var xc = (a[i].x + a[i + 1].x) / 2;
+                var yc = (a[i].y + a[i + 1].y) / 2;
+                ctx.quadraticCurveTo(a[i].x, a[i].y, xc, yc);
+            }
+            ctx.quadraticCurveTo(a[i].x, a[i].y, Width, YPosition);
+            ctx.lineTo(Width, YPosition); 
+        }
+    }
+    if(Draw == DrawType.Fill){
+        ctx.fill()
+    } else if(Draw == DrawType.Line){
+        ctx.stroke()
+    }
+}
+
+
+//Utility Functions
 function rgbtoHex(s){
     if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(s)){
         return s
@@ -457,14 +536,6 @@ function getHEX(v){
     return j = "#" + j.join("")
 }
 
-function test(k){
-    let u = k;
-    u.forEach((b, i) => {
-        u[i] = b.toString(16)
-    })
-    return "#" + u.join("")
-}
-
 function getRGBArr(v){
     if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(v)){
         let k = v.split("#")
@@ -487,62 +558,37 @@ function getRGBArr(v){
     }
 }
 
-function drawLine(smooth, inverted){
-    if(!inverted){
-        inverted = false;
-    }
-    if(!smooth){
-        smooth = false;
-    }
-    if(!smooth){
-        if(inverted){
-            ctx.beginPath();
-            ctx.moveTo(0, YPosition);
-            ctx.lineTo(Audio[0].x, Audio[0].iy);
-            for (i = 1; i < Audio.length - 1; i ++)
-            {
-                ctx.lineTo(Audio[i].x, Audio[i].iy);
-            }
-            ctx.lineTo(Width, YPosition);
-        }else{
-            ctx.beginPath();
-            ctx.moveTo(0, YPosition);
-            ctx.lineTo(Audio[0].x, Audio[0].y);
-            for (i = 1; i < Audio.length - 1; i ++)
-            {
-                ctx.lineTo(Audio[i].x, Audio[i].y);
-            }
-            ctx.lineTo(Width, YPosition);
-        }
+function hexToRGB(hex){
+    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+        hex = hex.substr(1)
+        let a = hex.split("")
+        let r = []
+        r.push(a[0] + a[1]);
+        r.push(a[2] + a[3]);
+        r.push(a[4] + a[5]);
+        r.forEach((c, i) => {
+            r[i] = parseInt(c, 16)
+        })
+        return `rgb(${r.join()})`
     }else{
-        if(inverted){
-            ctx.beginPath();
-            ctx.moveTo(0, YPosition);
-            for (i = 1; i < Audio.length - 2; i ++)
-            {
-                var xc = (Audio[i].x + Audio[i + 1].x) / 2;
-                var yc = (Audio[i].iy + Audio[i + 1].iy) / 2;
-                ctx.quadraticCurveTo(Audio[i].x, Audio[i].iy, xc, yc);
-            }
-            ctx.quadraticCurveTo(Audio[i].x, Audio[i].iy, Width, YPosition);
-            ctx.lineTo(Width, YPosition);
-        }else{
-            ctx.beginPath();
-            ctx.moveTo(0, YPosition);
-            for (i = 1; i < Audio.length - 2; i ++)
-            {
-                var xc = (Audio[i].x + Audio[i + 1].x) / 2;
-                var yc = (Audio[i].y + Audio[i + 1].y) / 2;
-                ctx.quadraticCurveTo(Audio[i].x, Audio[i].y, xc, yc);
-            }
-            ctx.quadraticCurveTo(Audio[i].x, Audio[i].y, Width, YPosition);
-            ctx.lineTo(Width, YPosition); 
-        }
+        return new Error("Not Hex")
     }
-    if(Draw == DrawType.Fill){
-        ctx.fill()
-    } else if(Draw == DrawType.Line){
-        ctx.stroke()
+}
+
+function hexToRGBA(hex, al){
+    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+        hex = hex.substr(1)
+        let a = hex.split("")
+        let r = []
+        r.push(a[0] + a[1]);
+        r.push(a[2] + a[3]);
+        r.push(a[4] + a[5]);
+        r.forEach((c, i) => {
+            r[i] = parseInt(c, 16)
+        })
+        return `rgba(${r.join()},${al})`
+    }else{
+        return new Error("Not Hex")
     }
 }
 
@@ -554,7 +600,7 @@ function loadImage(l){
 
 }
 
-function FGColor(){
+function FGColor(a){
     if(CustomCol){
         if(Display == DisplayType.CircleAlt || Display == DisplayType.BoxAlt){
             var grd=ctx.createRadialGradient(Width / 2,Height / 2,1,Width / 2,Height / 2,multiplier * (Height / 2));
@@ -572,12 +618,12 @@ function FGColor(){
             var r1 = Math.round(istep * c0_0[0] + step * c0_1[0]);
             var g1 = Math.round(istep * c0_0[1] + step * c0_1[1]);
             var b1 = Math.round(istep * c0_0[2] + step * c0_1[2]);
-            var color1 = "rgb("+r1+","+g1+","+b1+")";
+            var color1 = "rgba("+r1+","+g1+","+b1+"," + a + ")";
 
             var r2 = Math.round(istep * c1_0[0] + step * c1_1[0]);
             var g2 = Math.round(istep * c1_0[1] + step * c1_1[1]);
             var b2 = Math.round(istep * c1_0[2] + step * c1_1[2]);
-            var color2 = "rgb("+r2+","+g2+","+b2+")";
+            var color2 = "rgba("+r2+","+g2+","+b2+"," + a + ")";
 
             step += gradientSpeed * 10;
             if ( step >= 1 )
@@ -599,15 +645,16 @@ function FGColor(){
                     let pos = (Width / 6 * i) / Width;
                     pos += ColorOffset;
                     pos %= 1;
-                    grd.addColorStop(pos,`rgb(${colors[i][0]},${colors[i][1]},${colors[i][2]})`);
+                    grd.addColorStop(pos,`rgba(${colors[i][0]},${colors[i][1]},${colors[i][2]},${a})`);
                 }
                 ColorOffset += gradientSpeed;
                 ctx.fillStyle=grd;
                 ctx.strokeStyle=grd;
             break;
             case ColorType.solid:
-            ctx.fillStyle=FGC;
-            ctx.strokeStyle=FGC;
+            console.log(hexToRGBA(FGC, a));
+            ctx.fillStyle=hexToRGBA(FGC, a);
+            ctx.strokeStyle=hexToRGBA(FGC, a);
             break;
         }
     }else{
@@ -676,4 +723,20 @@ function BGColor(){
 Array.prototype.subarray=function(start,end){
     if(!end){ end=-1;} 
    return this.slice(start, this.length+1-(end*-1));
+}
+
+Array.prototype.copy = function(){
+    return JSON.parse(JSON.stringify(this));
+}
+
+Math.clamp = function(v, mi, ma){
+    if(v < mi) return mi;
+    if(v > ma) return ma;
+    return v;
+}
+
+Number.prototype.clamp = function (mi, ma){
+    if(this < mi) return mi;
+    if(this > ma) return ma;
+    return this;
 }
