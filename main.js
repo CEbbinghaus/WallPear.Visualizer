@@ -71,7 +71,7 @@ var image = {
     color: "#212121",
     height : 0,
     width : 0,
-    bgc : false
+    raw : ""
 }
 
 var Mouse = {
@@ -109,6 +109,9 @@ var DeltaTime = 0;
 const c = d("c");
 const ctx = c.getContext("2d");
 
+const bc = d("bc");
+const bctx = bc.getContext("2d");
+
 var Audio = [];
 var Average = [];
 var FadeArr = new Array(10);
@@ -142,28 +145,24 @@ window.wallpaperPropertyListener = {
         }
         if(properties.Visualizer){
             Display = properties.Visualizer.value
-            ctx.clearRect(0, 0, Width, Height)
         }
         if(properties.Fade){
             Fade = properties.Fade.value;
         }
         if(properties.draw){
             Draw = properties.draw.value
-            ctx.clearRect(0, 0, Width, Height)
         }
         if(properties.Radius){
             Radius = properties.Radius.value / 100;
         }
         if(properties.DrawSide){
             CurrentSide = properties.DrawSide.value
-            ctx.clearRect(0, 0, Width, Height)
         }
         if(properties.multiplier){
             multiplier = properties.multiplier.value / 100
         }
         if(properties.ypos){
             YPosition = properties.ypos.value / 1000 * Height;
-            ctx.clearRect(0, 0, Width, Height)
         }
         if(properties.Rainbow){
             isRainbow = properties.Rainbow.value
@@ -172,27 +171,29 @@ window.wallpaperPropertyListener = {
             FGC = getHEX(properties.Fcol.value)
         }
         if(properties.Bcol){
-            ctx.clearRect(0, 0, Width, Height)
             BGC = getHEX(properties.Bcol.value)
+            drawBackround()
         }
         if(properties.Line){
             LineWith = properties.Line.value
         }
         if(properties.CustomCol){
             CustomCol = properties.CustomCol.value
-            ctx.clearRect(0, 0, Width, Height)
+            drawBackround()
         }
         if(properties.FGColorType){
             FColorType = properties.FGColorType.value
         }
         if(properties.BGColorType){
             BColorType = properties.BGColorType.value
+            drawBackround()
         }
         if(properties.Speed){
             gradientSpeed = properties.Speed.value / 10000
         }
         if(properties.BSpeed){
             gradientSpeedB = properties.BSpeed.value / 10000
+            drawBackround()
         }
         if(properties.Col0){
             colors[0] = getRGBArr(properties.Col0.value)
@@ -219,14 +220,16 @@ window.wallpaperPropertyListener = {
             Ajust = properties.Ajust.value
         }
         if(properties.drawMode){
-            ctx.clearRect(0, 0, Width, Height)
             ImageMode = properties.drawMode.value
+            drawBackround()
         }
         if(properties.pcol){
             image.color = getHEX(properties.pcol.value)
+            drawBackround()
         }
         if(properties.img){
-            ctx.clearRect(0, 0, Width, Height);
+            bctx.clearRect(0, 0, Width, Height);
+            image.raw = properties.img.value;
             let url = properties.img.value;
             url = url.replace(/%3A/g, ":");
             url = url.replace(/%20/g, " ");
@@ -238,6 +241,7 @@ window.wallpaperPropertyListener = {
                 image.width = image.img.width * ratio;
                 image.height = image.img.height * ratio;
                 image.isLoaded = true;
+                drawBackround()
             };
             image.img.src = url;
         }
@@ -283,6 +287,10 @@ function wallpaperAudioListener(audioArray) {
         })
     }
 
+    if(BColorType == ColorType.continuous || BColorType == ColorType.rotating){
+        drawBackround()
+    }
+
     Average.forEach((e, i) => {
         Audio[i].y = e * MaxHeight + YPosition;
         Audio[i].iy = -(e*MaxHeight) + YPosition;
@@ -292,18 +300,6 @@ function wallpaperAudioListener(audioArray) {
     var halfCount = audioArray.length / 2;
 
     ctx.clearRect(0, 0, Width, Height);
-    if(BColorType != ColorType.image){
-        BGColor();
-        ctx.fillRect(0, 0, Width, Height);
-    }else{
-        if(image.isLoaded){
-            if(image.bgc){
-                ctx.fillStyle = image.color;
-                ctx.fillRect(0, 0, Width, Height);
-            }
-            drawImage();
-        }
-    }
 
     ctx.lineWidth=LineWith;
     FGColor(1);
@@ -405,16 +401,36 @@ function DrawEverything(obj){
     }
 }
 
+function drawBackround(){
+    if(BColorType != ColorType.image){
+        BGColor();
+        bctx.fillRect(0, 0, Width, Height);
+    }else{
+        if(image.isLoaded){
+            bctx.fillStyle = image.color;
+            bctx.fillRect(0, 0, Width, Height);
+            drawImage();
+        }
+    }
+}
+
 function drawImage(){
+    if(image.img.src.endsWith("gif") || image.img.src.endsWith("webp")){
+        console.log("its animated")
+        bctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
+        document.body.style.backgroundImage = "url('file:///"+ image.raw +"')";
+        document.body.style.backgroundSize = '100% 100%';
+        return;
+    }
     switch(ImageMode){
         case DrawMode.center:
-            ctx.drawImage(image.img, Width / 2 - image.img.width / 2, Height / 2 - image.img.height / 2, image.img.width, image.img.height)
+            bctx.drawImage(image.img, Width / 2 - image.img.width / 2, Height / 2 - image.img.height / 2, image.img.width, image.img.height)
         break;
         case DrawMode.fit:
-            ctx.drawImage(image.img, (Width / 2) - (image.width / 2), (Height / 2) - (image.height / 2), image.width, image.height)
+            bctx.drawImage(image.img, (Width / 2) - (image.width / 2), (Height / 2) - (image.height / 2), image.width, image.height)
         break;
         case DrawMode.stretch:
-        ctx.drawImage(image.img, 0, 0, Width, Height)
+            bctx.drawImage(image.img, 0, 0, Width, Height)
         break;
     }
 }
@@ -699,7 +715,7 @@ function BGColor(){
             }
             grd.addColorStop(0,color1);
             grd.addColorStop(1,color2);
-            ctx.fillStyle=grd;
+            bctx.fillStyle=grd;
             break;
             case ColorType.continuous:
                 for(let i = 0; i < 6; i++){
@@ -709,14 +725,14 @@ function BGColor(){
                     grd.addColorStop(pos,`rgb(${colors[i][0]},${colors[i][1]},${colors[i][2]})`)
                 }
                 ColorOffsetB += gradientSpeedB;
-                ctx.fillStyle=grd;
+                bctx.fillStyle=grd;
             break;
             case ColorType.solid:
-            ctx.fillStyle=BGC;
+            bctx.fillStyle=BGC;
             break;
         }
     }else{
-        ctx.fillStyle="#212121";
+        bctx.fillStyle="#212121";
     }
 }
 

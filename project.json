@@ -41,7 +41,7 @@
 			},
 			"drawMode" : 
 			{
-				"condition" : "CustomCol.value && BGColorType.value == 3",
+				"condition" : "CustomCol.value && BGColorType.value == 3 && !img.value.endsWith(\"gif\") && !img.value.endsWith(\"webp\") && !img.value.endsWith(\"webm\")",
 				"options" : 
 				[
 					{
@@ -58,13 +58,13 @@
 					}
 				],
 				"order" : 23,
-				"text" : "Draw Mode",
+				"text" : "Draw Mode (does not apply to animated gif's)",
 				"type" : "combo",
 				"value" : 0
 			},
 			"pcol" : 
 			{
-				"condition" : "CustomCol.value && BGColorType.value == 3",
+				"condition" : "CustomCol.value && BGColorType.value == 3 && !img.value.endsWith(\"gif\") && !img.value.endsWith(\"webp\") && !img.value.endsWith(\"webm\")",
 				"order" : 23.7,
 				"text" : "Backround Color (use the Eye Dropper tool for the best effect)",
 				"type" : "color",
