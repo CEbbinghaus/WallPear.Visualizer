@@ -129,8 +129,8 @@ window.onload = function() {
     Width = window.innerWidth;
     Height = window.innerHeight
     window.wallpaperRegisterAudioListener(wallpaperAudioListener);
-    if(c.width != window.innerWidth)c.width = window.innerWidth;
-    if(c.height != window.innerHeight)c.height = window.innerHeight;
+		c.width = bc.width = innerWidth;
+		c.height = bc.height = innerHeight;
 };
 
 window.addEventListener("mousemove", e => {
@@ -231,6 +231,8 @@ window.wallpaperPropertyListener = {
             bctx.clearRect(0, 0, Width, Height);
             image.raw = properties.img.value;
             let url = properties.img.value;
+						console.log(url)
+						if(!url)return;
             url = url.replace(/%3A/g, ":");
             url = url.replace(/%20/g, " ");
             image.isLoaded = false;
